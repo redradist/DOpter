@@ -1,13 +1,13 @@
 // <operation: Assignment, name: $locals__main__["a"], value: list()>
 // <operation: Assignment, name: $locals__main__["i"], value: Int(5)>
-// <operation: CheckAttrib, name: $locals__main__["a"], operation: a.add>
+// <operation: HasAttrib, name: $locals__main__["a"], operation: a.add>
 // <operation: CallAttrib, name: $locals__main__["a"], operation: a.add, value: $locals__main__["i"]>
-// <operation: CheckAttrib, name: $locals__main__["i"], operation: "+">
+// <operation: HasAttrib, name: $locals__main__["i"], operation: "+">
 // <operation: CallAttrib, name: $locals__main__["i"], operation: "+", value: Int(1)>
 // <operation: Assignment, name: $locals__main__["temp"]>
 // <operation: FuncCall, name: print, value: $locals__main__["temp"]>
 
-import {BytecodeId, BytecodeItem, NodeColor, Scope} from "./bytecode";
+import {BytecodeId, BytecodeItem, BytecodeColor, Scope} from "./bytecode";
 
 class Variable {
     public invariant: boolean = true;
@@ -31,10 +31,11 @@ class Optimizer {
 
     public processByteCode(start: BytecodeItem, prev?: BytecodeItem) {
         if (start.marked == false ||
-            (start.color == NodeColor.White && prev?.color == NodeColor.Red)) {
+            (start.color == BytecodeColor.White && prev?.color == BytecodeColor.Red)) {
             this.current_scope = start.scope;
-            if (start.color == NodeColor.White && prev?.color == NodeColor.Red) {
-                start.color = NodeColor.Red;
+            let color = BytecodeColor.White;
+            if (start.color == BytecodeColor.White && prev?.color == BytecodeColor.Red) {
+                start.color = BytecodeColor.Red;
             } else {
                 switch (start.id) {
                     case BytecodeId.Import:
@@ -62,11 +63,15 @@ class Optimizer {
                     case BytecodeId.CallAttrib:
                         break;
                 }
-                if (this.global_invariant === false) {
-                    start.color = NodeColor.Red;
+                if (this.global_invariant == true &&
+                    color == BytecodeColor.White) {
+                    start.color = BytecodeColor.White;
                 }
             }
             start.marked = true;
+            if (start.nexts.length >= 1) {
+                start.color = BytecodeColor.Red;
+            }
             for (let next of start.nexts) {
                 this.processByteCode(next, start);
             }

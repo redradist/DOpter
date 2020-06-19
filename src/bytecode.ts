@@ -14,6 +14,11 @@ export class Scope {
     }
 }
 
+export enum BytecodeColor {
+    Red,   // Mean Node could not be optimized
+    White, // Mean Node could be optimized
+}
+
 export class BytecodeItem {
     public extra: null;
     public scope: Scope;
@@ -22,7 +27,7 @@ export class BytecodeItem {
 
     public marked: boolean = false;
     public nexts: BytecodeItem[];
-    public color: NodeColor = NodeColor.White;
+    public color: BytecodeColor = BytecodeColor.Red;
 
     public constructor(extra: null, scope: Scope, id: BytecodeId, ...values) {
         this.extra = extra;
@@ -30,9 +35,4 @@ export class BytecodeItem {
         this.id = id;
         this.values = values;
     }
-}
-
-export enum NodeColor {
-    Red,   // Mean Node could not be optimized
-    White, // Mean Node could be optimized
 }
