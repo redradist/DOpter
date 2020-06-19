@@ -7,7 +7,7 @@
 // <operation: Assignment, name: $locals__main__["temp"]>
 // <operation: FuncCall, name: print, value: $locals__main__["temp"]>
 
-import {Scope, BytecodeId, BytecodeItem, GraphNode} from "./bytecode";
+import {BytecodeId, BytecodeItem, NodeColor, Scope} from "./bytecode";
 
 class Variable {
     public invariant: boolean = true;
@@ -29,36 +29,47 @@ class Optimizer {
         this.builtin_types = builtin_types;
     }
 
-    public processByteCode(start: GraphNode) {
-        this.current_scope = start.item.scope;
-        switch (start.item.id) {
-            case BytecodeId.Import:
-                break;
-            case BytecodeId.Assign:
-            {
-                console.assert(start.item.values.length >= 1);
-                let scope = start.item.values[0];
-                if (start.item.values.length >= 2) {
-                    console.assert(start.item.values.length == 3);
-                    let type = start.item.values[1];
-                    let value = start.item.values[2];
-                    let variable =new Variable(type, value);
-                    if (scope == this.current_scope.scope_name) {
+    public processByteCode(start: BytecodeItem, prev?: BytecodeItem) {
+        if (start.marked == false ||
+            (start.color == NodeColor.White && prev?.color == NodeColor.Red)) {
+            this.current_scope = start.scope;
+            if (start.color == NodeColor.White && prev?.color == NodeColor.Red) {
+                start.color = NodeColor.Red;
+            } else {
+                switch (start.id) {
+                    case BytecodeId.Import:
+                        break;
+                    case BytecodeId.Assign:
+                    {
+                        console.assert(start.values.length >= 1);
+                        let scope = start.values[0];
+                        if (start.values.length >= 2) {
+                            console.assert(start.values.length == 3);
+                            let type = start.values[1];
+                            let value = start.values[2];
+                            let variable =new Variable(type, value);
+                            if (scope == this.current_scope.scope_name) {
 
+                            }
+                            this.scope_variables.push(variable);
+                        }
                     }
-                    this.scope_variables.push(variable);
+                        break;
+                    case BytecodeId.HasAttrib:
+                        break;
+                    case BytecodeId.GetAttrib:
+                        break;
+                    case BytecodeId.CallAttrib:
+                        break;
+                }
+                if (this.global_invariant === false) {
+                    start.color = NodeColor.Red;
                 }
             }
-                break;
-            case BytecodeId.HasAttrib:
-                break;
-            case BytecodeId.GetAttrib:
-                break;
-            case BytecodeId.CallAttrib:
-                break;
-        }
-        for (let next of start.nexts) {
-            this.processByteCode(next);
+            start.marked = true;
+            for (let next of start.nexts) {
+                this.processByteCode(next, start);
+            }
         }
     }
 }

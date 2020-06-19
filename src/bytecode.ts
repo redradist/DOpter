@@ -20,6 +20,10 @@ export class BytecodeItem {
     public id: BytecodeId;
     public values: any[];
 
+    public marked: boolean = false;
+    public nexts: BytecodeItem[];
+    public color: NodeColor = NodeColor.White;
+
     public constructor(extra: null, scope: Scope, id: BytecodeId, ...values) {
         this.extra = extra;
         this.scope = scope;
@@ -28,18 +32,7 @@ export class BytecodeItem {
     }
 }
 
-enum NodeColor {
-    Red,
-    White,
-}
-
-export class GraphNode {
-    public item: BytecodeItem;
-    public nexts: BytecodeItem[];
-    public color: NodeColor = NodeColor.White;
-
-    public constructor(item: BytecodeItem, ...nexts) {
-        this.item = item;
-        this.nexts = nexts;
-    }
+export enum NodeColor {
+    Red,   // Mean Node could not be optimized
+    White, // Mean Node could be optimized
 }
